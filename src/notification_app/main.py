@@ -284,10 +284,12 @@ def send_telegram(chat_id: str, title: str, message: str) -> bool:
             return False
         
     url = f"https://api.telegram.org/bot{token}/sendMessage"
+    safe_title = str(title).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    safe_message = str(message).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     payload = {
         "chat_id": chat_id,
-        "text": f"🚨 *{title}*\n{message}",
-        "parse_mode": "Markdown"
+        "text": f"🚨 <b>{safe_title}</b>\n{safe_message}",
+        "parse_mode": "HTML"
     }
     try:
         r = requests.post(url, json=payload, timeout=5)
