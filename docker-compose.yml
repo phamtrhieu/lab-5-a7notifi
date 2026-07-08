@@ -68,7 +68,7 @@ networks:
   team-internal:
     driver: bridge
   class-net:
-    name: class-net
+    external: true
 
 volumes:
   db-data:
