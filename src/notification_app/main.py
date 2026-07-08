@@ -257,12 +257,13 @@ def resolve_channels_and_recipients(severity: str, target: str, requested_channe
 def get_channel_recipients(target: str, channel: str) -> str:
     target_lower = (target or "").lower()
     if channel == "email":
+        env_to = os.getenv("EMAIL_TO") or os.getenv("MAIL_USERNAME") or os.getenv("MAIL_FROM_ADDRESS") or "info@campus.local"
         if "security" in target_lower:
-            return "security-team@campus.local"
+            return os.getenv("EMAIL_TO_SECURITY") or env_to
         elif "admin" in target_lower:
-            return "admin-office@campus.local"
+            return os.getenv("EMAIL_TO_ADMIN") or env_to
         else:
-            return os.getenv("EMAIL_TO", "info@campus.local")
+            return env_to
     elif channel == "telegram":
         if "security" in target_lower:
             return os.getenv("TELEGRAM_CHAT_ID_SECURITY") or os.getenv("TELEGRAM_CHAT_ID", "default_chat")
@@ -304,11 +305,12 @@ def send_telegram(chat_id: str, title: str, message: str) -> bool:
         return False
 
 def send_email(recipient: str, title: str, message: str) -> bool:
-    smtp_server = os.getenv("SMTP_SERVER")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    email_from = os.getenv("EMAIL_FROM", "sender@example.com")
+    smtp_server = os.getenv("SMTP_SERVER") or os.getenv("MAIL_HOST")
+    smtp_port_val = os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT") or "587"
+    smtp_port = int(smtp_port_val)
+    smtp_user = os.getenv("SMTP_USER") or os.getenv("MAIL_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
+    email_from = os.getenv("EMAIL_FROM") or os.getenv("MAIL_FROM_ADDRESS") or "sender@example.com"
     
     if not smtp_server or not smtp_user or not smtp_password:
         print("[Email Mock] SMTP credentials not configured. Executing mock webhook POST.")
@@ -548,6 +550,10 @@ def run_mqtt_client():
     if MQTT_USERNAME and MQTT_PASSWORD:
         client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
     
+    if MQTT_PORT == 8883:
+        import ssl
+        client.tls_set(cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2)
+        
     client.on_message = on_mqtt_message
     
     def on_connect(client, userdata, flags, rc):
@@ -751,6 +757,10 @@ def root():
         return HTMLResponse(content=html_content)
     except Exception as e:
         return HTMLResponse(content=f"<h3>Error loading dashboard: {e}</h3>", status_code=500)
+
+@app.get("/dashboard.html", response_class=HTMLResponse)
+def dashboard_html():
+    return root()
 
 
 @app.get("/health")

@@ -3,427 +3,817 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notification Service Dashboard</title>
-  <!-- Google Fonts: Outfit -->
+  <title>NotifyService — A7 Smart Campus Dashboard</title>
+  <meta name="description" content="Notification Service Dashboard for DNU Smart Campus Operations Platform — Real-time alert monitoring and multi-channel dispatch.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    /* ═══════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════ */
     :root {
-      --dnu-orange: #eb5e00;
-      --dnu-orange-hover: #d15200;
-      --dnu-orange-glow: rgba(235, 94, 0, 0.2);
-      --bg-light: #f8fafc;
-      --bg-card: #ffffff;
-      --border-color: #e2e8f0;
-      --text-main: #0f172a;
+      --bg-body: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-glass: rgba(255,255,255,0.04);
+      --bg-glass-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.06);
+      --border-focus: rgba(99,102,241,0.5);
+
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
       --text-muted: #64748b;
-      --success: #10b981;
-      --success-bg: rgba(16, 185, 129, 0.1);
-      --error: #ef4444;
-      --error-bg: rgba(239, 68, 68, 0.1);
+
+      --accent: #6366f1;
+      --accent-glow: rgba(99,102,241,0.25);
+      --accent-hover: #818cf8;
+
+      --green: #22c55e;
+      --green-bg: rgba(34,197,94,0.12);
+      --green-border: rgba(34,197,94,0.25);
+
+      --red: #ef4444;
+      --red-bg: rgba(239,68,68,0.12);
+      --red-border: rgba(239,68,68,0.25);
+
+      --orange: #f97316;
+      --orange-bg: rgba(249,115,22,0.12);
+      --orange-border: rgba(249,115,22,0.25);
+
+      --yellow: #eab308;
+      --yellow-bg: rgba(234,179,8,0.12);
+      --yellow-border: rgba(234,179,8,0.25);
+
+      --cyan: #06b6d4;
+      --cyan-bg: rgba(6,182,212,0.12);
+      --cyan-border: rgba(6,182,212,0.25);
+
+      --pink: #ec4899;
+      --pink-bg: rgba(236,72,153,0.12);
+      --pink-border: rgba(236,72,153,0.25);
+
+      --slate-bg: rgba(100,116,139,0.12);
+      --slate-border: rgba(100,116,139,0.25);
+
+      --radius: 14px;
+      --radius-sm: 8px;
+      --radius-xs: 6px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.35);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-light);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(235, 94, 0, 0.05) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.02) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
       min-height: 100vh;
-      padding-bottom: 3rem;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-
-
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto 0 auto;
-      padding: 0 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+    /* Animated gradient orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: var(--accent);
+      top: -200px; left: -100px;
+      animation: floatOrb 20s ease-in-out infinite;
+    }
+    body::after {
+      width: 500px; height: 500px;
+      background: var(--pink);
+      bottom: -200px; right: -100px;
+      animation: floatOrb 25s ease-in-out infinite reverse;
+    }
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(60px, -40px) scale(1.1); }
+      66% { transform: translate(-30px, 50px) scale(0.95); }
     }
 
-    /* Main Header */
-    header {
+    /* ═══════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════ */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 3rem;
+    }
+
+    /* ═══════════════════════════════════════════
+       NAVBAR
+    ═══════════════════════════════════════════ */
+    .navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem;
-      border-radius: 12px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      padding: 1rem 1.5rem;
+      background: var(--bg-glass);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
     }
 
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--text-main);
+    .navbar-brand {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.75rem;
     }
 
-    header h1 span {
-      background: rgba(235, 94, 0, 0.1);
-      border: 1px solid rgba(235, 94, 0, 0.2);
-      color: var(--dnu-orange);
-      font-size: 0.75rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 9999px;
-      font-weight: 600;
+    .navbar-logo {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--pink));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 0.85rem; color: #fff;
+      letter-spacing: -0.5px;
+      box-shadow: 0 0 20px var(--accent-glow);
     }
 
-    .radmin-info {
-      text-align: right;
-      background: #f1f5f9;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
+    .navbar-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .radmin-info .ip-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .radmin-info .ip-val {
-      font-family: monospace;
-      color: var(--dnu-orange);
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-
-    /* Grid Layout */
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (min-width: 900px) {
-      .grid {
-        grid-template-columns: 360px 1fr;
-      }
-    }
-
-    /* Health Cards */
-    .health-section {
+    .navbar-right {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 1rem;
     }
 
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.25rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    .navbar-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .live-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .sound-btn {
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .sound-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════
+       STAT CARDS ROW
+    ═══════════════════════════════════════════ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 500px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
       position: relative;
       overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
     }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.1);
+      box-shadow: var(--shadow-sm);
     }
-
-    .card::before {
+    .stat-card::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
+      top: 0; left: 0; right: 0;
+      height: 2px;
     }
+    .stat-card.accent-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
+    .stat-card.accent-green::after { background: linear-gradient(90deg, var(--green), transparent); }
+    .stat-card.accent-cyan::after { background: linear-gradient(90deg, var(--cyan), transparent); }
+    .stat-card.accent-red::after { background: linear-gradient(90deg, var(--red), transparent); }
 
-    .card.healthy::before {
-      background-color: var(--success);
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.35rem;
     }
+    .stat-icon.orange { background: var(--orange-bg); }
+    .stat-icon.green { background: var(--green-bg); }
+    .stat-icon.cyan { background: var(--cyan-bg); }
+    .stat-icon.red { background: var(--red-bg); }
 
-    .card.error::before {
-      background-color: var(--error);
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .card-title {
+    .stat-info { flex: 1; }
+    .stat-label {
+      font-size: 0.75rem;
       font-weight: 600;
-      font-size: 1rem;
-      color: var(--text-main);
-    }
-
-    .badge {
-      font-size: 0.7rem;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .badge.healthy {
-      background: var(--success-bg);
-      color: #059669;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .badge.error {
-      background: var(--error-bg);
-      color: #dc2626;
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    .card-meta {
-      font-size: 0.8rem;
       color: var(--text-muted);
-      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
     }
-
-    .card-meta span {
-      font-family: monospace;
-      color: var(--text-main);
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .stat-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
       font-weight: 500;
     }
 
-    /* Form Section */
-    .form-card h2 {
-      font-size: 1.15rem;
+    /* ═══════════════════════════════════════════
+       MAIN GRID (Left Panel + Right Panel)
+    ═══════════════════════════════════════════ */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ═══════════════════════════════════════════
+       PANELS (Glass Cards)
+    ═══════════════════════════════════════════ */
+    .panel {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-title {
+      font-size: 1rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .panel-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ═══════════════════════════════════════════
+       TABS
+    ═══════════════════════════════════════════ */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 0.25rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      color: var(--text-main);
-      border-bottom: 2px solid var(--dnu-orange);
-      padding-bottom: 0.4rem;
+      justify-content: center;
+      gap: 0.4rem;
     }
+    .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════
+       LEFT PANEL — HEALTH INDICATORS
+    ═══════════════════════════════════════════ */
+    .health-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .health-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+    .health-item:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .health-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .health-dot.ok { background: var(--green); box-shadow: 0 0 10px rgba(34,197,94,0.4); }
+    .health-dot.fail { background: var(--red); box-shadow: 0 0 10px rgba(239,68,68,0.4); }
+    .health-dot.warn { background: var(--yellow); box-shadow: 0 0 10px rgba(234,179,8,0.4); }
+
+    .health-info { flex: 1; }
+    .health-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .health-detail {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .health-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .health-badge.ok {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+    .health-badge.fail {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+    .health-badge.warn {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+      border: 1px solid var(--yellow-border);
+    }
+
+    /* ═══════════════════════════════════════════
+       LEFT PANEL — FORM (Trigger Test)
+    ═══════════════════════════════════════════ */
+    .form-section { margin-top: 0.5rem; }
 
     .form-group {
       margin-bottom: 0.85rem;
     }
-
-    .form-group label {
+    .form-label {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.72rem;
+      font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 0.3rem;
-      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-
-    .form-control, select, textarea {
+    .form-input, .form-select, .form-textarea {
       width: 100%;
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 0.5rem 0.7rem;
-      color: var(--text-main);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 0.6rem 0.75rem;
+      color: var(--text-primary);
       font-family: inherit;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
-
-    .form-control:focus, select:focus, textarea:focus {
-      border-color: var(--dnu-orange);
-      box-shadow: 0 0 0 3px var(--dnu-orange-glow);
-      background: #ffffff;
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
+    .form-select { cursor: pointer; }
+    .form-select option { background: var(--bg-surface); color: var(--text-primary); }
+    .form-textarea { resize: vertical; min-height: 56px; }
 
-    .input-group {
+    .input-row {
       display: flex;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
+    .input-row .form-input { flex: 1; }
 
-    .btn-icon {
-      background: rgba(235, 94, 0, 0.08);
-      border: 1px solid rgba(235, 94, 0, 0.2);
-      color: var(--dnu-orange);
-      border-radius: 6px;
-      padding: 0 0.7rem;
+    .btn-gen {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      border-radius: var(--radius-xs);
+      padding: 0 0.85rem;
       cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: inherit;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-gen:hover { background: var(--accent-hover); }
+
+    .severity-row {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+      gap: 0.35rem;
+    }
+    .severity-option {
+      flex: 1;
+      text-align: center;
+    }
+    .severity-option input { display: none; }
+    .severity-option label {
+      display: block;
+      padding: 0.45rem 0;
+      border-radius: var(--radius-xs);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .severity-option input:checked + label.sev-critical {
+      background: var(--red-bg); color: var(--red); border-color: var(--red-border);
+    }
+    .severity-option input:checked + label.sev-high {
+      background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border);
+    }
+    .severity-option input:checked + label.sev-medium {
+      background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border);
+    }
+    .severity-option input:checked + label.sev-low {
+      background: var(--cyan-bg); color: var(--cyan); border-color: var(--cyan-border);
     }
 
-    .btn-icon:hover {
-      background: rgba(235, 94, 0, 0.15);
-    }
-
-    .checkbox-group {
+    .channel-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.4rem;
-      background: #f8fafc;
-      padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
+      gap: 0.35rem;
     }
-
-    .checkbox-label {
+    .channel-option {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      font-size: 0.8rem;
-      color: var(--text-main);
+      gap: 0.4rem;
+      padding: 0.45rem 0.65rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
       cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.78rem;
       font-weight: 500;
+      color: var(--text-secondary);
     }
-
-    .checkbox-label input {
-      accent-color: var(--dnu-orange);
-      width: 14px;
-      height: 14px;
-    }
+    .channel-option:hover { background: rgba(255,255,255,0.04); }
+    .channel-option input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
 
     .btn-submit {
       width: 100%;
-      background: var(--dnu-orange);
-      color: white;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: #fff;
       border: none;
-      border-radius: 6px;
-      padding: 0.65rem;
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(235, 94, 0, 0.2);
-      transition: transform 0.1s, background-color 0.2s;
-      margin-top: 0.4rem;
+      box-shadow: 0 4px 15px var(--accent-glow);
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+      letter-spacing: 0.3px;
     }
-
     .btn-submit:hover {
-      background-color: var(--dnu-orange-hover);
+      box-shadow: 0 6px 24px rgba(99,102,241,0.4);
+      transform: translateY(-1px);
     }
+    .btn-submit:active { transform: scale(0.98); }
 
-    .btn-submit:active {
-      transform: scale(0.98);
-    }
-
-    /* Logs/Table Section */
-    .history-card {
+    /* ═══════════════════════════════════════════
+       LEFT PANEL — CHANNEL CONFIG
+    ═══════════════════════════════════════════ */
+    .config-list {
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 550px;
+      gap: 0.65rem;
     }
-
-    .history-header {
+    .config-item {
+      padding: 0.85rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .config-item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--dnu-orange);
-      padding-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
     }
-
-    .history-header h2 {
-      font-size: 1.15rem;
+    .config-item-name {
+      font-size: 0.82rem;
       font-weight: 700;
-      color: var(--text-main);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
-
-    .table-container {
-      overflow-y: auto;
-      flex-grow: 1;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background: #ffffff;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.8rem;
-    }
-
-    th {
-      background: #f1f5f9;
-      position: sticky;
-      top: 0;
-      padding: 0.65rem 0.85rem;
-      font-weight: 700;
+    .config-item-detail {
+      font-size: 0.7rem;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--border-color);
+      font-family: 'Courier New', monospace;
     }
 
-    td {
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid var(--border-color);
-      color: var(--text-main);
+    /* ═══════════════════════════════════════════
+       RIGHT PANEL — FILTER BAR
+    ═══════════════════════════════════════════ */
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-bar .form-input {
+      flex: 1;
+      min-width: 180px;
+    }
+    .filter-bar .form-select {
+      width: auto;
+      min-width: 140px;
     }
 
-    tr:hover td {
-      background: rgba(235, 94, 0, 0.02);
+    /* ═══════════════════════════════════════════
+       RIGHT PANEL — NOTIFICATION CARDS LIST
+    ═══════════════════════════════════════════ */
+    .notif-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      max-height: 640px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
     }
 
-    .status-badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      padding: 0.1rem 0.35rem;
-      border-radius: 4px;
-      font-weight: 600;
+    .notif-list::-webkit-scrollbar { width: 5px; }
+    .notif-list::-webkit-scrollbar-track { background: transparent; }
+    .notif-list::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+    }
+
+    .notif-card {
+      padding: 1rem 1.15rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      animation: slideUp 0.35s ease;
+      border-left: 3px solid transparent;
+    }
+    .notif-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+    }
+    .notif-card.border-critical { border-left-color: var(--red); }
+    .notif-card.border-high { border-left-color: var(--orange); }
+    .notif-card.border-warning { border-left-color: var(--yellow); }
+    .notif-card.border-medium { border-left-color: var(--yellow); }
+    .notif-card.border-low { border-left-color: var(--cyan); }
+    .notif-card.border-default { border-left-color: var(--accent); }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notif-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .notif-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .notif-badges {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
       text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .badge-critical { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .badge-high { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+    .badge-warning { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+    .badge-medium { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow-border); }
+    .badge-low { background: var(--cyan-bg); color: var(--cyan); border: 1px solid var(--cyan-border); }
+
+    .badge-live {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+    .badge-live::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
     }
 
-    .status-badge.delivered {
-      background: rgba(16, 185, 129, 0.12);
-      color: #059669;
+    .badge-channel {
+      background: var(--accent-glow);
+      color: var(--accent-hover);
+      border: 1px solid rgba(99,102,241,0.3);
     }
 
-    .status-badge.pending {
-      background: rgba(245, 158, 11, 0.12);
-      color: #d97706;
+    .badge-delivered {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+    .badge-pending {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+      border: 1px solid var(--yellow-border);
+    }
+    .badge-sending {
+      background: var(--orange-bg);
+      color: var(--orange);
+      border: 1px solid var(--orange-border);
+    }
+    .badge-failed {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+    .badge-duplicate {
+      background: var(--slate-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--slate-border);
+    }
+    .badge-logged {
+      background: var(--cyan-bg);
+      color: var(--cyan);
+      border: 1px solid var(--cyan-border);
     }
 
-    .status-badge.failed {
-      background: rgba(239, 68, 68, 0.12);
-      color: #dc2626;
+    .notif-message {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
     }
 
-    .status-badge.duplicate {
-      background: rgba(148, 163, 184, 0.15);
-      color: #475569;
+    .notif-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
-
-    .status-badge.logged {
-      background: rgba(6, 182, 212, 0.12);
-      color: #0891b2;
+    .notif-time {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
     }
-
-
-    .channel-badge {
-      background: rgba(235, 94, 0, 0.06);
-      border: 1px solid rgba(235, 94, 0, 0.15);
-      padding: 0.1rem 0.3rem;
+    .notif-id {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: 'Courier New', monospace;
+      background: rgba(255,255,255,0.03);
+      padding: 0.15rem 0.45rem;
       border-radius: 4px;
-      font-size: 0.7rem;
-      color: var(--dnu-orange);
-      font-weight: 600;
-      text-transform: uppercase;
+      border: 1px solid var(--border);
     }
 
-    /* Toast Notification */
+    .notif-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+    .notif-empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.5;
+    }
+    .notif-empty-text {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* ═══════════════════════════════════════════
+       TOASTS
+    ═══════════════════════════════════════════ */
     .toast-container {
       position: fixed;
       bottom: 20px;
@@ -433,197 +823,318 @@
       gap: 10px;
       z-index: 9999;
     }
-
     .toast {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-left: 4px solid var(--dnu-orange);
-      color: var(--text-main);
-      padding: 0.85rem;
-      border-radius: 6px;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-      min-width: 280px;
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      color: var(--text-primary);
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      min-width: 300px;
+      max-width: 420px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      animation: slideIn 0.3s ease;
-      font-size: 0.85rem;
+      animation: slideInRight 0.3s ease;
+      font-size: 0.82rem;
       font-weight: 500;
     }
-
-    .toast.success {
-      border-left-color: var(--success);
-    }
-
-    .toast.error {
-      border-left-color: var(--error);
-    }
-
+    .toast.success { border-left-color: var(--green); }
+    .toast.error { border-left-color: var(--red); }
     .toast-close {
       cursor: pointer;
       color: var(--text-muted);
       font-weight: bold;
-      margin-left: 10px;
+      margin-left: 12px;
       font-size: 1.1rem;
+      transition: color 0.15s;
     }
+    .toast-close:hover { color: var(--text-primary); }
 
-    @keyframes slideIn {
+    @keyframes slideInRight {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 700px) {
+      .navbar { flex-direction: column; gap: 0.75rem; text-align: center; }
+      .navbar-right { justify-content: center; }
+      .filter-bar { flex-direction: column; }
+      .filter-bar .form-input, .filter-bar .form-select { width: 100%; min-width: unset; }
+    }
+
+    /* Hide bearer token */
+    #bearer-token-group { display: none; }
   </style>
 </head>
 <body>
+  <div class="app">
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="navbar" id="navbar">
+      <div class="navbar-brand">
+        <div class="navbar-logo">A7</div>
+        <span class="navbar-title">NotifyService</span>
+      </div>
+      <div class="navbar-right">
+        <button class="sound-btn" id="sound-toggle" onclick="toggleSound()">🔔 Âm thanh: Bật</button>
+        <div class="navbar-badge">
+          <div class="live-dot"></div>
+          <span>Live • Real-time</span>
+        </div>
+      </div>
+    </nav>
 
+    <!-- ═══ STAT CARDS ═══ -->
+    <section class="stats-grid" id="stats-grid">
+      <div class="stat-card accent-orange">
+        <div class="stat-icon orange">⚠️</div>
+        <div class="stat-info">
+          <div class="stat-label">Tổng Cảnh Báo</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-desc">Đã xử lý từ Core Business</div>
+        </div>
+      </div>
+      <div class="stat-card accent-green">
+        <div class="stat-icon green">✅</div>
+        <div class="stat-info">
+          <div class="stat-label">Gửi Thành Công</div>
+          <div class="stat-value" id="stat-delivered">0</div>
+          <div class="stat-desc" id="stat-rate">Tỷ lệ thành công: --</div>
+        </div>
+      </div>
+      <div class="stat-card accent-cyan">
+        <div class="stat-icon cyan">🔁</div>
+        <div class="stat-info">
+          <div class="stat-label">Ngăn Trùng Lặp</div>
+          <div class="stat-value" id="stat-duplicates">0</div>
+          <div class="stat-desc">Deduplicated (Tránh Spam)</div>
+        </div>
+      </div>
+      <div class="stat-card accent-red">
+        <div class="stat-icon red">🔄</div>
+        <div class="stat-info">
+          <div class="stat-label">Yêu Cầu Retry</div>
+          <div class="stat-value" id="stat-retries">0</div>
+          <div class="stat-desc">Số lượt tự động gửi lại</div>
+        </div>
+      </div>
+    </section>
 
-
-  <div class="container">
-    <!-- Header -->
-    <header>
+    <!-- ═══ MAIN GRID ═══ -->
+    <div class="main-grid">
+      <!-- ─── LEFT PANEL ─── -->
       <div>
-        <h1 style="color: var(--text-main);">
-          <span style="background: var(--dnu-orange); color: white; border: none; font-size: 1rem; padding: 0.3rem 0.8rem;">DNU</span>
-          Dịch vụ Thông báo Cảnh báo (Notification Service)
-        </h1>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; font-weight: 500;">
-          Dự án kết nối tích hợp Buổi 6 - Phân tích & Phân phối thông báo đa kênh
-        </p>
-      </div>
-      <div class="radmin-info">
-        <div class="ip-label">Địa chỉ IP Radmin VPN</div>
-        <div class="ip-val" id="radmin-ip">Đang lấy IP...</div>
-      </div>
-    </header>
+        <div class="panel">
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="tab-inbound" id="tab-btn-inbound" onclick="switchTab('tab-inbound')">
+              📡 Tín Hiệu từ B6 (Inbound)
+            </button>
+            <button class="tab-btn" data-tab="tab-channels" id="tab-btn-channels" onclick="switchTab('tab-channels')">
+              ⚙️ Cấu Hình Kênh
+            </button>
+          </div>
 
-    <!-- Grid -->
-    <div class="grid">
-      <!-- Left column: Health & Control Form -->
-      <div class="health-section">
-        <!-- Health Card: API -->
-        <div class="card healthy" id="health-api">
-          <div class="card-header">
-            <div class="card-title">API Notification</div>
-            <div class="badge healthy" id="status-api">HOẠT ĐỘNG</div>
-          </div>
-          <div class="card-meta">
-            Cổng kết nối: <span>8000</span> | Trạng thái: <span>Sẵn sàng</span><br>
-            Thời gian: <span id="time-api">--</span>
-          </div>
-        </div>
-
-        <!-- Health Card: DB -->
-        <div class="card healthy" id="health-db">
-          <div class="card-header">
-            <div class="card-title">Cơ sở dữ liệu PostgreSQL</div>
-            <div class="badge healthy" id="status-db">HOẠT ĐỘNG</div>
-          </div>
-          <div class="card-meta">
-            Địa chỉ: <span>db:5432</span> | Phiên bản: <span>Postgres 15</span><br>
-            Trạng thái: <span id="meta-db">--</span>
-          </div>
-        </div>
-
-        <!-- Health Card: AI Service -->
-        <div class="card healthy" id="health-ai">
-          <div class="card-header">
-            <div class="card-title">Dịch vụ AI cục bộ</div>
-            <div class="badge healthy" id="status-ai">HOẠT ĐỘNG</div>
-          </div>
-          <div class="card-meta">
-            Địa chỉ: <span>ai-service:9000</span> | Mô hình: <span>YOLO Mock</span><br>
-            Trạng thái: <span id="meta-ai">--</span>
-          </div>
-        </div>
-
-        <!-- Control Form Card -->
-        <div class="card form-card">
-          <h2>
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style="color: var(--dnu-orange); vertical-align: middle; margin-right: 4px;">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h-3V9h5v8zm0-10h-2V5h2v2z"/>
-            </svg>
-            Bảng điều khiển Bắn thử
-          </h2>
-          
-          <form id="trigger-form">
-            <div class="form-group">
-              <label for="event-type">Loại sự kiện (Đường dẫn Endpoint)</label>
-              <select id="event-type">
-                <option value="alert.created">/events/alert.created (Tạo mới)</option>
-                <option value="alert.escalated">/events/alert.escalated (Leo thang)</option>
-                <option value="alert.resolved">/events/alert.resolved (Khắc phục)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="event-id">Mã Sự kiện (Event ID - UUID v4)</label>
-              <div class="input-group">
-                <input type="text" class="form-control" id="event-id" readonly>
-                <button type="button" class="btn-icon" id="btn-gen-uuid" title="Tạo mã ngẫu nhiên">⚡</button>
+          <!-- TAB: Inbound (Health + Form) -->
+          <div class="tab-content active" id="tab-inbound">
+            <!-- Health indicators -->
+            <div style="margin-bottom:1.25rem;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.65rem;">Trạng Thái Hệ Thống</div>
+              <div class="health-list">
+                <div class="health-item" id="health-api">
+                  <div class="health-dot ok" id="health-dot-api"></div>
+                  <div class="health-info">
+                    <div class="health-name">Notification API</div>
+                    <div class="health-detail">Port 8000 • FastAPI v0.5.0</div>
+                  </div>
+                  <div class="health-badge ok" id="health-badge-api">HOẠT ĐỘNG</div>
+                </div>
+                <div class="health-item" id="health-db">
+                  <div class="health-dot ok" id="health-dot-db"></div>
+                  <div class="health-info">
+                    <div class="health-name">PostgreSQL Database</div>
+                    <div class="health-detail" id="health-detail-db">Port 5432 • Postgres 15</div>
+                  </div>
+                  <div class="health-badge ok" id="health-badge-db">HOẠT ĐỘNG</div>
+                </div>
+                <div class="health-item" id="health-ai">
+                  <div class="health-dot ok" id="health-dot-ai"></div>
+                  <div class="health-info">
+                    <div class="health-name">AI Service</div>
+                    <div class="health-detail" id="health-detail-ai">Port 9000 • YOLO Mock</div>
+                  </div>
+                  <div class="health-badge ok" id="health-badge-ai">HOẠT ĐỘNG</div>
+                </div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="alert-id">Mã Cảnh báo (Alert ID)</label>
-              <input type="text" class="form-control" id="alert-id" value="ALT-2026-06-18-001">
-            </div>
+            <!-- Divider -->
+            <div style="height:1px; background:var(--border); margin:1rem 0;"></div>
 
-            <div class="form-group">
-              <label for="alert-title">Tiêu đề cảnh báo</label>
-              <input type="text" class="form-control" id="alert-title" value="Cảnh báo phát hiện xâm nhập">
+            <!-- Trigger form -->
+            <div class="form-section">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.65rem;">🚀 Bảng Điều Khiển Bắn Thử</div>
+              <form id="trigger-form">
+                <div class="form-group">
+                  <label class="form-label">Loại sự kiện</label>
+                  <select class="form-select" id="event-type">
+                    <option value="alert.created">/events/alert.created (Tạo mới)</option>
+                    <option value="alert.escalated">/events/alert.escalated (Leo thang)</option>
+                    <option value="alert.resolved">/events/alert.resolved (Khắc phục)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Event ID (UUID v4)</label>
+                  <div class="input-row">
+                    <input type="text" class="form-input" id="event-id" readonly>
+                    <button type="button" class="btn-gen" id="btn-gen-uuid">⚡ Tạo</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Alert ID</label>
+                  <input type="text" class="form-input" id="alert-id" value="ALT-2026-TEST-001">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mức độ nghiêm trọng</label>
+                  <div class="severity-row">
+                    <div class="severity-option">
+                      <input type="radio" name="severity" value="CRITICAL" id="sev-crit">
+                      <label for="sev-crit" class="sev-critical">Critical</label>
+                    </div>
+                    <div class="severity-option">
+                      <input type="radio" name="severity" value="HIGH" id="sev-high" checked>
+                      <label for="sev-high" class="sev-high">High</label>
+                    </div>
+                    <div class="severity-option">
+                      <input type="radio" name="severity" value="MEDIUM" id="sev-med">
+                      <label for="sev-med" class="sev-medium">Medium</label>
+                    </div>
+                    <div class="severity-option">
+                      <input type="radio" name="severity" value="LOW" id="sev-low">
+                      <label for="sev-low" class="sev-low">Low</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tiêu đề cảnh báo</label>
+                  <input type="text" class="form-input" id="alert-title" value="Cảnh báo phát hiện xâm nhập">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nội dung chi tiết</label>
+                  <textarea class="form-textarea" id="alert-message" rows="2">Phát hiện đối tượng di chuyển bất thường tại khu vực Cổng chính DNU</textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Kênh nhận thông báo</label>
+                  <div class="channel-grid">
+                    <label class="channel-option"><input type="checkbox" name="channels" value="telegram" checked> 📨 Telegram</label>
+                    <label class="channel-option"><input type="checkbox" name="channels" value="email" checked> 📧 Email</label>
+                    <label class="channel-option"><input type="checkbox" name="channels" value="app" checked> 📱 Ứng dụng</label>
+                    <label class="channel-option"><input type="checkbox" name="channels" value="sms"> 💬 SMS</label>
+                  </div>
+                </div>
+                <div id="bearer-token-group">
+                  <input type="text" class="form-input" id="bearer-token" value="local-dev-token">
+                </div>
+                <button type="submit" class="btn-submit">🚀 Bắn Thử Sự Kiện Cảnh Báo</button>
+              </form>
             </div>
+          </div>
 
-            <div class="form-group">
-              <label for="alert-message">Nội dung chi tiết</label>
-              <textarea id="alert-message" rows="2">Phát hiện đối tượng di chuyển bất thường tại khu vực Cổng chính DNU</textarea>
-            </div>
-
-            <div class="form-group">
-              <label>Kênh nhận thông báo (Tối đa 4)</label>
-              <div class="checkbox-group">
-                <label class="checkbox-label"><input type="checkbox" name="channels" value="telegram" checked> Telegram</label>
-                <label class="checkbox-label"><input type="checkbox" name="channels" value="email" checked> Email</label>
-                <label class="checkbox-label"><input type="checkbox" name="channels" value="app" checked> Ứng dụng</label>
-                <label class="checkbox-label"><input type="checkbox" name="channels" value="sms"> Tin nhắn SMS</label>
+          <!-- TAB: Channel Config -->
+          <div class="tab-content" id="tab-channels">
+            <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.65rem;">Cấu Hình Kênh Gửi Thông Báo</div>
+            <div class="config-list">
+              <div class="config-item">
+                <div class="config-item-header">
+                  <div class="config-item-name">📨 Telegram Bot</div>
+                  <div class="health-badge ok" id="cfg-tele-badge">CONFIGURED</div>
+                </div>
+                <div class="config-item-detail">Bot: @nhomA7_notification_bot</div>
+                <div class="config-item-detail" style="margin-top:0.2rem;">Chat ID: ••••••9811</div>
+              </div>
+              <div class="config-item">
+                <div class="config-item-header">
+                  <div class="config-item-name">📧 Email SMTP</div>
+                  <div class="health-badge warn" id="cfg-email-badge">MOCK</div>
+                </div>
+                <div class="config-item-detail">Server: smtp.gmail.com:587</div>
+                <div class="config-item-detail" style="margin-top:0.2rem;">Fallback: httpbin.org (Mock)</div>
+              </div>
+              <div class="config-item">
+                <div class="config-item-header">
+                  <div class="config-item-name">🌐 Webhook / App</div>
+                  <div class="health-badge ok" id="cfg-webhook-badge">CONFIGURED</div>
+                </div>
+                <div class="config-item-detail">URL: httpbin.org/post</div>
+              </div>
+              <div class="config-item">
+                <div class="config-item-header">
+                  <div class="config-item-name">📡 MQTT Subscriber</div>
+                  <div class="health-badge ok" id="cfg-mqtt-badge">CONNECTED</div>
+                </div>
+                <div class="config-item-detail">Broker: HiveMQ Cloud (EU)</div>
+                <div class="config-item-detail" style="margin-top:0.2rem;">Topic: smart-campus/events/alert</div>
               </div>
             </div>
 
-            <div class="form-group" style="display:none;">
-              <label for="bearer-token">Token Xác thực</label>
-              <input type="text" class="form-control" id="bearer-token" value="local-dev-token">
+            <div style="height:1px; background:var(--border); margin:1.25rem 0;"></div>
+            <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0.65rem;">Quy Tắc Phân Phối (Auto-routing)</div>
+            <div class="config-list">
+              <div class="config-item">
+                <div class="config-item-name" style="margin-bottom:0.4rem;">📋 Ma Trận Severity → Channel</div>
+                <div class="config-item-detail">CRITICAL → Telegram + Email + App</div>
+                <div class="config-item-detail">HIGH → Telegram + App</div>
+                <div class="config-item-detail">MEDIUM → Email</div>
+                <div class="config-item-detail">LOW → Chỉ ghi log (không gửi)</div>
+              </div>
             </div>
-
-            <button type="submit" class="btn-submit">Bắn thử Sự kiện Cảnh báo</button>
-          </form>
+          </div>
         </div>
       </div>
 
-      <!-- Right column: Logs & Tables -->
+      <!-- ─── RIGHT PANEL ─── -->
       <div>
-        <div class="card history-card">
-          <div class="history-header">
-            <h2>Nhật ký Thông báo Thời gian thực</h2>
-            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">
-              Tự động cập nhật sau mỗi 3 giây
+        <div class="panel" style="display:flex; flex-direction:column; height:100%;">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Lịch sử & Trạng thái gửi Alerts</div>
+              <div class="panel-subtitle">Tự động cập nhật mỗi 3 giây • Dữ liệu từ PostgreSQL</div>
+            </div>
+            <div class="navbar-badge" style="font-size:0.7rem;">
+              <div class="live-dot"></div> Real-time
             </div>
           </div>
-          
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Mã Giao dịch (Delivery ID)</th>
-                  <th>Mã Cảnh báo (Alert ID)</th>
-                  <th>Kênh truyền</th>
-                  <th>Trạng thái gửi</th>
-                  <th>Thời gian gửi</th>
-                </tr>
-              </thead>
-              <tbody id="notifications-table-body">
-                <tr>
-                  <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">Chưa nhận được sự kiện nào. Hãy bắn thử sự kiện từ bảng điều khiển hoặc chờ tín hiệu từ Core Business (A6).</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <!-- Filters -->
+          <div class="filter-bar">
+            <input type="text" class="form-input" id="filter-search" placeholder="🔍 Tìm kiếm Alert ID...">
+            <select class="form-select" id="filter-severity">
+              <option value="">Mọi mức độ</option>
+              <option value="critical">🔴 Critical</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🔵 Low</option>
+            </select>
+            <select class="form-select" id="filter-channel">
+              <option value="">Mọi kênh</option>
+              <option value="telegram">📨 Telegram</option>
+              <option value="email">📧 Email</option>
+              <option value="app">📱 App</option>
+              <option value="webhook">🌐 Webhook</option>
+            </select>
+          </div>
+
+          <!-- Notification list -->
+          <div class="notif-list" id="notif-list">
+            <div class="notif-empty">
+              <div class="notif-empty-icon">📭</div>
+              <div class="notif-empty-text">Chưa nhận được sự kiện nào.<br>Hãy bắn thử hoặc chờ tín hiệu từ Core Business (A6).</div>
+            </div>
           </div>
         </div>
       </div>
@@ -633,15 +1144,30 @@
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
-  <script>
-    // Constants
-    const BASE_URL = window.location.origin;
+  <!-- Notification Sound -->
+  <audio id="notif-sound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgipGFaTw0YoqUlXFGJTlZgIl1Vy08VXl9b1dHVHh8cVZHUnd7clRIVXh6cFNKWHp6b1JMWnt5blFOXHx4bVFQXn14bFBSYH53bFBTYX94bE9VY4B5a09WZoF6a05YaIN7a05aaYR7ak5cbIV7ak1eb4Z6ak1gcId5aU1ic4h4aUxldYl4aExneop3aEtpfIt3Z0tsf4x2Z0tug412Zktwg451ZkpyhY50ZUpzhY50ZUp0ho5zZUp1ho5zZEp1ho5zZEp1ho5zZUp1ho5zZEt1ho5zZEt1ho5zZEt1h45zZEx2h45yZUx3iI5yZU14iI5xZk55iY1xZk96io1wZ1B7i4xwZ1F8jIxvZ1J9jYtvaFOAjotvaVSBj4puaVaCkIlualaEkYhtalaGkodsala=" type="audio/wav">
+  </audio>
 
-    // Helpers
+  <script>
+    /* ═══════════════════════════════════════════
+       CONSTANTS & STATE
+    ═══════════════════════════════════════════ */
+    let BASE_URL = window.location.origin;
+    if (BASE_URL.startsWith('file://') || !BASE_URL.includes(':8000')) {
+      BASE_URL = 'http://26.19.238.62:8000';
+    }
+    let soundEnabled = true;
+    let previousNotifCount = 0;
+    let allNotifications = [];
+
+    /* ═══════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════ */
     function generateUUID() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
       });
     }
 
@@ -649,212 +1175,314 @@
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      toast.innerHTML = `
-        <span>${message}</span>
-        <span class="toast-close" onclick="this.parentElement.remove()">×</span>
-      `;
+      toast.innerHTML = `<span>${message}</span><span class="toast-close" onclick="this.parentElement.remove()">×</span>`;
       container.appendChild(toast);
-      setTimeout(() => {
-        toast.remove();
-      }, 5000);
+      setTimeout(() => toast.remove(), 5000);
     }
 
-    // Initialize UUID
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-toggle').textContent = soundEnabled ? '🔔 Âm thanh: Bật' : '🔕 Âm thanh: Tắt';
+    }
+
+    function playNotifSound() {
+      if (soundEnabled) {
+        try { document.getElementById('notif-sound').play().catch(() => {}); } catch(e) {}
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatTime(isoStr) {
+      try {
+        return new Date(isoStr).toLocaleString('vi-VN', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      } catch(e) { return isoStr; }
+    }
+
+    /* ═══════════════════════════════════════════
+       TABS
+    ═══════════════════════════════════════════ */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    /* ═══════════════════════════════════════════
+       UUID GENERATOR
+    ═══════════════════════════════════════════ */
     document.getElementById('event-id').value = generateUUID();
     document.getElementById('btn-gen-uuid').addEventListener('click', () => {
       document.getElementById('event-id').value = generateUUID();
     });
 
-    // Load Health and server details
-    async function fetchServerDetails() {
+    /* ═══════════════════════════════════════════
+       HEALTH CHECK
+    ═══════════════════════════════════════════ */
+    async function fetchHealth() {
       try {
         const res = await fetch(`${BASE_URL}/health`);
-        if (res.ok) {
-          const data = await res.json();
-          // Set timestamp
-          document.getElementById('time-api').innerText = new Date(data.timestamp).toLocaleString('vi-VN');
-          
-          // Dependencies
-          const dbStatus = data.dependencies.database;
-          const dbCard = document.getElementById('health-db');
-          const dbBadge = document.getElementById('status-db');
-          const dbMeta = document.getElementById('meta-db');
-          if (dbStatus.includes('ok')) {
-            dbCard.className = 'card healthy';
-            dbBadge.className = 'badge healthy';
-            dbBadge.innerText = 'HOẠT ĐỘNG';
-            dbMeta.innerText = 'Đã kết nối';
-          } else {
-            dbCard.className = 'card error';
-            dbBadge.className = 'badge error';
-            dbBadge.innerText = 'DỰ PHÒNG';
-            dbMeta.innerText = 'Đang lưu tạm bộ nhớ';
-          }
+        if (!res.ok) throw new Error('Health check failed');
+        const data = await res.json();
 
-          const aiStatus = data.dependencies.ai_service;
-          const aiCard = document.getElementById('health-ai');
-          const aiBadge = document.getElementById('status-ai');
-          const aiMeta = document.getElementById('meta-ai');
-          if (aiStatus === 'ok') {
-            aiCard.className = 'card healthy';
-            aiBadge.className = 'badge healthy';
-            aiBadge.innerText = 'HOẠT ĐỘNG';
-            aiMeta.innerText = 'Đã kết nối';
-          } else {
-            aiCard.className = 'card error';
-            aiBadge.className = 'badge error';
-            aiBadge.innerText = 'NGOẠI TUYẾN';
-            aiMeta.innerText = 'Kết nối thất bại';
-          }
+        // API — always ok if we reached here
+        setHealth('api', 'ok', 'HOẠT ĐỘNG');
 
-          // API status
-          document.getElementById('health-api').className = 'card healthy';
-          document.getElementById('status-api').className = 'badge healthy';
-          document.getElementById('status-api').innerText = 'HOẠT ĐỘNG';
-        }
+        // DB
+        const dbStatus = data.dependencies?.database || '';
+        const dbOk = dbStatus.includes('ok');
+        setHealth('db', dbOk ? 'ok' : 'fail', dbOk ? 'HOẠT ĐỘNG' : 'DỰ PHÒNG');
+        document.getElementById('health-detail-db').textContent =
+          dbOk ? 'Port 5432 • Đã kết nối' : 'Fallback → In-memory Storage';
+
+        // AI
+        const aiOk = data.dependencies?.ai_service === 'ok';
+        setHealth('ai', aiOk ? 'ok' : 'fail', aiOk ? 'HOẠT ĐỘNG' : 'NGOẠI TUYẾN');
+        document.getElementById('health-detail-ai').textContent =
+          aiOk ? 'Port 9000 • Đã kết nối' : 'Kết nối thất bại';
+
       } catch (err) {
-        document.getElementById('health-api').className = 'card error';
-        document.getElementById('status-api').className = 'badge error';
-        document.getElementById('status-api').innerText = 'NGOẠI TUYẾN';
+        setHealth('api', 'fail', 'NGOẠI TUYẾN');
       }
     }
 
-    // Detect Radmin IP
-    function detectRadminIP() {
-      const hostname = window.location.hostname;
-      if (hostname.startsWith('26.')) {
-        document.getElementById('radmin-ip').innerText = hostname;
-      } else {
-        document.getElementById('radmin-ip').innerText = '26.95.36.20 (Local)';
-      }
+    function setHealth(service, status, label) {
+      const dot = document.getElementById(`health-dot-${service}`);
+      const badge = document.getElementById(`health-badge-${service}`);
+      dot.className = `health-dot ${status}`;
+      badge.className = `health-badge ${status}`;
+      badge.textContent = label;
     }
 
-    // Fetch notifications list
+    /* ═══════════════════════════════════════════
+       NOTIFICATIONS
+    ═══════════════════════════════════════════ */
     async function fetchNotifications() {
       try {
         const token = document.getElementById('bearer-token').value;
         const res = await fetch(`${BASE_URL}/api/v1/notifications`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) {
-          const data = await res.json();
-          const tbody = document.getElementById('notifications-table-body');
-          if (data && data.length > 0) {
-            tbody.innerHTML = '';
-            data.forEach(item => {
-              const tr = document.createElement('tr');
-              let statusText = 'Đang xử lý';
-              let statusClass = 'pending';
-              
-              if (item.status === 'delivered') {
-                statusText = 'Đã gửi';
-                statusClass = 'delivered';
-              } else if (item.status === 'failed') {
-                statusText = 'Thất bại';
-                statusClass = 'failed';
-              } else if (item.status === 'duplicate') {
-                statusText = 'Trùng lặp';
-                statusClass = 'duplicate';
-              } else if (item.status === 'logged') {
-                statusText = 'Đã ghi log';
-                statusClass = 'logged';
-              } else if (item.status === 'sending') {
-                statusText = item.retryCount > 0 ? `Đang gửi (Thử: ${item.retryCount})` : 'Đang gửi';
-                statusClass = 'pending';
-              }
+        if (!res.ok) return;
+        const data = await res.json();
+        allNotifications = data || [];
 
-
-              // Translate channel labels
-              let chanText = item.channel;
-              if (item.channel === 'telegram') chanText = 'Telegram';
-              else if (item.channel === 'email') chanText = 'Email';
-              else if (item.channel === 'app') chanText = 'Ứng dụng';
-              else if (item.channel === 'sms') chanText = 'SMS';
-
-              tr.innerHTML = `
-                <td style="font-family: monospace; font-size: 0.75rem;" title="${item.deliveryId}">${item.deliveryId.substring(0, 8)}...</td>
-                <td style="font-weight: 600; color: var(--text-main);">${item.alertId}</td>
-                <td><span class="channel-badge">${chanText}</span></td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td style="color: var(--text-muted); font-size: 0.75rem;">${new Date(item.sentAt).toLocaleString('vi-VN')}</td>
-              `;
-              tbody.appendChild(tr);
-            });
-          } else {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">Chưa nhận được sự kiện nào. Hãy bắn thử sự kiện từ bảng điều khiển hoặc chờ tín hiệu từ Core Business (A6).</td></tr>`;
-          }
+        // Play sound on new notifications
+        if (allNotifications.length > previousNotifCount && previousNotifCount > 0) {
+          playNotifSound();
         }
+        previousNotifCount = allNotifications.length;
+
+        updateStats();
+        renderNotifications();
       } catch (err) {
-        console.error('Không thể tải danh sách thông báo:', err);
+        console.error('Fetch notifications failed:', err);
       }
     }
 
-    // Form submission
+    function updateStats() {
+      const total = allNotifications.length;
+      const delivered = allNotifications.filter(n => n.status === 'delivered').length;
+      const duplicates = allNotifications.filter(n => n.status === 'duplicate').length;
+      const retries = allNotifications.filter(n => n.status === 'sending' || n.status === 'failed').length;
+
+      animateCounter('stat-total', total);
+      animateCounter('stat-delivered', delivered);
+      animateCounter('stat-duplicates', duplicates);
+      animateCounter('stat-retries', retries);
+
+      const rate = total > 0 ? ((delivered / total) * 100).toFixed(0) : '--';
+      document.getElementById('stat-rate').textContent = `Tỷ lệ thành công: ${rate}%`;
+    }
+
+    function animateCounter(id, target) {
+      const el = document.getElementById(id);
+      const current = parseInt(el.textContent) || 0;
+      if (current === target) return;
+      el.textContent = target;
+      el.style.transition = 'transform 0.2s';
+      el.style.transform = 'scale(1.15)';
+      setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      const searchTerm = document.getElementById('filter-search').value.toLowerCase();
+      const sevFilter = document.getElementById('filter-severity').value.toLowerCase();
+      const chanFilter = document.getElementById('filter-channel').value.toLowerCase();
+
+      let filtered = allNotifications;
+
+      if (searchTerm) {
+        filtered = filtered.filter(n =>
+          n.alertId?.toLowerCase().includes(searchTerm) ||
+          n.deliveryId?.toLowerCase().includes(searchTerm)
+        );
+      }
+      if (chanFilter) {
+        filtered = filtered.filter(n => n.channel?.toLowerCase() === chanFilter);
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="notif-empty">
+            <div class="notif-empty-icon">📭</div>
+            <div class="notif-empty-text">${allNotifications.length > 0 ? 'Không tìm thấy kết quả phù hợp.' : 'Chưa nhận được sự kiện nào.<br>Hãy bắn thử hoặc chờ tín hiệu từ Core Business (A6).'}</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = filtered.map(n => {
+        const statusClass = getStatusClass(n.status);
+        const statusText = getStatusText(n);
+        const channelText = getChannelText(n.channel);
+        const channelIcon = getChannelIcon(n.channel);
+        const borderClass = getBorderClass(n);
+        const retryInfo = (n.retryCount && n.retryCount > 0) ? ` (Retry: ${n.retryCount})` : '';
+
+        return `
+          <div class="notif-card ${borderClass}">
+            <div class="notif-card-top">
+              <div class="notif-title">
+                ${channelIcon} ${escapeHtml(n.alertId || 'N/A')}
+                <span class="badge badge-live">LIVE</span>
+              </div>
+              <div class="notif-badges">
+                <span class="badge badge-channel">${channelText}</span>
+                <span class="badge ${statusClass}">${statusText}${retryInfo}</span>
+              </div>
+            </div>
+            <div class="notif-message">
+              [${escapeHtml(n.channel?.toUpperCase() || 'SYSTEM')}] Alert ${escapeHtml(n.alertId || '')} → Trạng thái: ${statusText}
+              ${n.errorMessage && n.errorMessage !== 'No error' ? ` • Lỗi: ${escapeHtml(n.errorMessage)}` : ''}
+            </div>
+            <div class="notif-footer">
+              <div class="notif-time">🕐 ${formatTime(n.sentAt)}</div>
+              <div class="notif-id">🎫 ${escapeHtml((n.deliveryId || '').substring(0, 12))}...</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'delivered': 'badge-delivered',
+        'pending': 'badge-pending',
+        'sending': 'badge-sending',
+        'failed': 'badge-failed',
+        'duplicate': 'badge-duplicate',
+        'logged': 'badge-logged'
+      };
+      return map[status] || 'badge-pending';
+    }
+
+    function getStatusText(n) {
+      const map = {
+        'delivered': '✅ delivered',
+        'pending': '⏳ pending',
+        'sending': '📤 sending',
+        'failed': '❌ failed',
+        'duplicate': '🔁 duplicate',
+        'logged': '📝 logged'
+      };
+      return map[n.status] || n.status;
+    }
+
+    function getChannelText(ch) {
+      const map = {
+        'telegram': 'TELEGRAM', 'email': 'EMAIL',
+        'app': 'APP', 'webhook': 'WEBHOOK',
+        'sms': 'SMS', 'system': 'SYSTEM', 'log': 'LOG'
+      };
+      return map[ch] || (ch || 'UNKNOWN').toUpperCase();
+    }
+
+    function getChannelIcon(ch) {
+      const map = {
+        'telegram': '📨', 'email': '📧',
+        'app': '📱', 'webhook': '🌐',
+        'sms': '💬', 'system': '🔧', 'log': '📝'
+      };
+      return map[ch] || '📋';
+    }
+
+    function getBorderClass(n) {
+      if (n.status === 'failed') return 'border-critical';
+      if (n.channel === 'log' || n.status === 'logged') return 'border-low';
+      if (n.status === 'duplicate') return 'border-default';
+      return 'border-high';
+    }
+
+    /* ═══════════════════════════════════════════
+       FORM SUBMISSION
+    ═══════════════════════════════════════════ */
     document.getElementById('trigger-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       const eventType = document.getElementById('event-type').value;
       const eventId = document.getElementById('event-id').value;
       const alertId = document.getElementById('alert-id').value;
       const title = document.getElementById('alert-title').value;
       const message = document.getElementById('alert-message').value;
       const token = document.getElementById('bearer-token').value;
-      
-      const selectedChannels = Array.from(document.querySelectorAll('input[name="channels"]:checked')).map(el => el.value);
+      const severity = document.querySelector('input[name="severity"]:checked')?.value || 'HIGH';
+      const channels = Array.from(document.querySelectorAll('input[name="channels"]:checked')).map(el => el.value);
 
-      if (selectedChannels.length === 0) {
+      if (channels.length === 0) {
         showToast('Vui lòng chọn ít nhất một kênh nhận thông báo', 'error');
         return;
       }
 
       const payload = {
-        eventId: eventId,
-        eventType: eventType,
-        alertId: alertId,
+        eventId, eventType, alertId,
         correlationId: 'COR-' + generateUUID().substring(0, 8).toUpperCase(),
-        severity: 'HIGH',
-        payload: {
-          title: title,
-          message: message,
-          source: 'mock-web-dashboard'
-        },
-        channels: selectedChannels
+        severity,
+        payload: { title, message, source: 'web-dashboard' },
+        channels
       };
 
       try {
         const response = await fetch(`${BASE_URL}/events/${eventType}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(payload)
         });
-
         if (response.status === 202) {
           const result = await response.json();
-          showToast(`Đã bắn cảnh báo thành công! Mã sự kiện: ${result.eventId.substring(0, 8)}...`);
-          // Refresh lists
+          showToast(`✅ Đã gửi cảnh báo thành công! ID: ${result.eventId.substring(0, 8)}...`);
           setTimeout(fetchNotifications, 500);
-          // Generate new UUID
           document.getElementById('event-id').value = generateUUID();
         } else {
           const errData = await response.json().catch(() => ({}));
-          showToast(`Lỗi: ${errData.detail || response.statusText}`, 'error');
+          showToast(`❌ Lỗi: ${errData.detail || response.statusText}`, 'error');
         }
       } catch (err) {
-        showToast('Kết nối thất bại: ' + err.message, 'error');
+        showToast('❌ Kết nối thất bại: ' + err.message, 'error');
       }
     });
 
-    // Initialize and loops
-    fetchServerDetails();
-    detectRadminIP();
-    fetchNotifications();
+    /* ═══════════════════════════════════════════
+       FILTER LISTENERS
+    ═══════════════════════════════════════════ */
+    document.getElementById('filter-search').addEventListener('input', renderNotifications);
+    document.getElementById('filter-severity').addEventListener('change', renderNotifications);
+    document.getElementById('filter-channel').addEventListener('change', renderNotifications);
 
-    setInterval(fetchServerDetails, 3000);
+    /* ═══════════════════════════════════════════
+       INIT & LOOP
+    ═══════════════════════════════════════════ */
+    fetchHealth();
+    fetchNotifications();
+    setInterval(fetchHealth, 3000);
     setInterval(fetchNotifications, 3000);
   </script>
 </body>
